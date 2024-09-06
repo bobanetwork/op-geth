@@ -64,7 +64,7 @@ func (o *OpLegacy) Finalize(chain consensus.ChainHeaderReader, header *types.Hea
 	panic(fmt.Errorf("cannot finalize legacy block header: %s (num %d)", header.Hash(), header.Number))
 }
 
-func (o *OpLegacy) FinalizeAndAssemble(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB, body *types.Body, receipts []*types.Receipt) (*types.Block, error) {
+func (o *OpLegacy) FinalizeAndAssemble(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB, body *types.Body, receipts []*types.Receipt, Rejected []types.RejectedTransaction) (*types.Block, error) {
 	return nil, fmt.Errorf("cannot finalize and assemble for legacy block header: %s (num %d)", header.Hash(), header.Number)
 }
 

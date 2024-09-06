@@ -382,9 +382,9 @@ func (beacon *Beacon) Finalize(chain consensus.ChainHeaderReader, header *types.
 
 // FinalizeAndAssemble implements consensus.Engine, setting the final state and
 // assembling the block.
-func (beacon *Beacon) FinalizeAndAssemble(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB, body *types.Body, receipts []*types.Receipt) (*types.Block, error) {
+func (beacon *Beacon) FinalizeAndAssemble(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB, body *types.Body, receipts []*types.Receipt, rejected []types.RejectedTransaction) (*types.Block, error) {
 	if !beacon.IsPoSHeader(header) {
-		return beacon.ethone.FinalizeAndAssemble(chain, header, state, body, receipts)
+		return beacon.ethone.FinalizeAndAssemble(chain, header, state, body, receipts, rejected)
 	}
 	shanghai := chain.Config().IsShanghai(header.Number, header.Time)
 	if shanghai {
@@ -404,7 +404,7 @@ func (beacon *Beacon) FinalizeAndAssemble(chain consensus.ChainHeaderReader, hea
 	header.Root = state.IntermediateRoot(true)
 
 	// Assemble and return the final block.
-	return types.NewBlock(header, body, receipts, trie.NewStackTrie(nil)), nil
+	return types.NewBlock(header, body, receipts, trie.NewStackTrie(nil)).WithRejected(rejected), nil
 }
 
 // Seal generates a new sealing request for the given input block and pushes

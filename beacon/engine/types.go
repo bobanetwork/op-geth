@@ -54,6 +54,9 @@ type PayloadAttributes struct {
 	// NoTxPool is a field for rollups: if true, the no transactions are taken out of the tx-pool,
 	// only transactions from the above Transactions list will be included.
 	NoTxPool bool `json:"noTxPool,omitempty" gencodec:"optional"`
+	// Espresso is a field for rollups: if true, Espresso mode is enabled.
+	// Espresso mode is a mode where the invalid transactions are included in the rejected transactions list.
+	Espresso bool `json:"espresso,omitempty" gencodec:"optional"`
 	// GasLimit is a field for rollups: if set, this sets the exact gas limit the block produced with.
 	GasLimit *uint64 `json:"gasLimit,omitempty" gencodec:"optional"`
 }
@@ -70,23 +73,24 @@ type payloadAttributesMarshaling struct {
 
 // ExecutableData is the data necessary to execute an EL payload.
 type ExecutableData struct {
-	ParentHash    common.Hash         `json:"parentHash"    gencodec:"required"`
-	FeeRecipient  common.Address      `json:"feeRecipient"  gencodec:"required"`
-	StateRoot     common.Hash         `json:"stateRoot"     gencodec:"required"`
-	ReceiptsRoot  common.Hash         `json:"receiptsRoot"  gencodec:"required"`
-	LogsBloom     []byte              `json:"logsBloom"     gencodec:"required"`
-	Random        common.Hash         `json:"prevRandao"    gencodec:"required"`
-	Number        uint64              `json:"blockNumber"   gencodec:"required"`
-	GasLimit      uint64              `json:"gasLimit"      gencodec:"required"`
-	GasUsed       uint64              `json:"gasUsed"       gencodec:"required"`
-	Timestamp     uint64              `json:"timestamp"     gencodec:"required"`
-	ExtraData     []byte              `json:"extraData"     gencodec:"required"`
-	BaseFeePerGas *big.Int            `json:"baseFeePerGas" gencodec:"required"`
-	BlockHash     common.Hash         `json:"blockHash"     gencodec:"required"`
-	Transactions  [][]byte            `json:"transactions"  gencodec:"required"`
-	Withdrawals   []*types.Withdrawal `json:"withdrawals"`
-	BlobGasUsed   *uint64             `json:"blobGasUsed"`
-	ExcessBlobGas *uint64             `json:"excessBlobGas"`
+	ParentHash    common.Hash                 `json:"parentHash"    gencodec:"required"`
+	FeeRecipient  common.Address              `json:"feeRecipient"  gencodec:"required"`
+	StateRoot     common.Hash                 `json:"stateRoot"     gencodec:"required"`
+	ReceiptsRoot  common.Hash                 `json:"receiptsRoot"  gencodec:"required"`
+	LogsBloom     []byte                      `json:"logsBloom"     gencodec:"required"`
+	Random        common.Hash                 `json:"prevRandao"    gencodec:"required"`
+	Number        uint64                      `json:"blockNumber"   gencodec:"required"`
+	GasLimit      uint64                      `json:"gasLimit"      gencodec:"required"`
+	GasUsed       uint64                      `json:"gasUsed"       gencodec:"required"`
+	Timestamp     uint64                      `json:"timestamp"     gencodec:"required"`
+	ExtraData     []byte                      `json:"extraData"     gencodec:"required"`
+	BaseFeePerGas *big.Int                    `json:"baseFeePerGas" gencodec:"required"`
+	BlockHash     common.Hash                 `json:"blockHash"     gencodec:"required"`
+	Transactions  [][]byte                    `json:"transactions"  gencodec:"required"`
+	Withdrawals   []*types.Withdrawal         `json:"withdrawals"`
+	Rejected      []types.RejectedTransaction `json:"rejected" gencodec:"optional"`
+	BlobGasUsed   *uint64                     `json:"blobGasUsed"`
+	ExcessBlobGas *uint64                     `json:"excessBlobGas"`
 }
 
 // JSON type overrides for executableData.
@@ -265,7 +269,7 @@ func ExecutableDataToBlock(data ExecutableData, versionedHashes []common.Hash, b
 		BlobGasUsed:      data.BlobGasUsed,
 		ParentBeaconRoot: beaconRoot,
 	}
-	block := types.NewBlockWithHeader(header).WithBody(types.Body{Transactions: txs, Uncles: nil, Withdrawals: data.Withdrawals})
+	block := types.NewBlockWithHeader(header).WithBody(types.Body{Transactions: txs, Uncles: nil, Withdrawals: data.Withdrawals}).WithRejected(data.Rejected)
 	if block.Hash() != data.BlockHash {
 		return nil, fmt.Errorf("blockhash mismatch, want %x, got %x", data.BlockHash, block.Hash())
 	}
@@ -291,6 +295,7 @@ func BlockToExecutableData(block *types.Block, fees *big.Int, sidecars []*types.
 		Random:        block.MixDigest(),
 		ExtraData:     block.Extra(),
 		Withdrawals:   block.Withdrawals(),
+		Rejected:      block.Rejected(),
 		BlobGasUsed:   block.BlobGasUsed(),
 		ExcessBlobGas: block.ExcessBlobGas(),
 	}

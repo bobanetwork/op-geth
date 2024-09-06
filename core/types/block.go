@@ -197,6 +197,9 @@ type Block struct {
 	transactions Transactions
 	withdrawals  Withdrawals
 
+	// espresso
+	rejected []RejectedTransaction
+
 	// caches
 	hash atomic.Pointer[common.Hash]
 	size atomic.Uint64
@@ -207,12 +210,21 @@ type Block struct {
 	ReceivedFrom interface{}
 }
 
+type RejectedTransaction struct {
+	// The raw data of the transaction. This allows us to include even completely malformed data
+	// blobs that were forced into the sequence by end users as rejected transactions.
+	Data []byte
+	// The position in the block at which this tranaction would have appeared had it been valid.
+	Pos uint64
+}
+
 // "external" block encoding. used for eth protocol, etc.
 type extblock struct {
 	Header      *Header
 	Txs         []*Transaction
 	Uncles      []*Header
-	Withdrawals []*Withdrawal `rlp:"optional"`
+	Withdrawals []*Withdrawal         `rlp:"optional"`
+	Rejected    []RejectedTransaction `rlp:"optional"`
 }
 
 // NewBlock creates a new block. The input data is copied, changes to header and to the
@@ -312,7 +324,7 @@ func (b *Block) DecodeRLP(s *rlp.Stream) error {
 	if err := s.Decode(&eb); err != nil {
 		return err
 	}
-	b.header, b.uncles, b.transactions, b.withdrawals = eb.Header, eb.Uncles, eb.Txs, eb.Withdrawals
+	b.header, b.uncles, b.transactions, b.withdrawals, b.rejected = eb.Header, eb.Uncles, eb.Txs, eb.Withdrawals, eb.Rejected
 	b.size.Store(rlp.ListSize(size))
 	return nil
 }
@@ -324,6 +336,7 @@ func (b *Block) EncodeRLP(w io.Writer) error {
 		Txs:         b.transactions,
 		Uncles:      b.uncles,
 		Withdrawals: b.withdrawals,
+		Rejected:    b.rejected,
 	})
 }
 
@@ -382,6 +395,10 @@ func (b *Block) BaseFee() *big.Int {
 }
 
 func (b *Block) BeaconRoot() *common.Hash { return b.header.ParentBeaconRoot }
+
+func (b *Block) Rejected() []RejectedTransaction {
+	return b.rejected
+}
 
 func (b *Block) ExcessBlobGas() *uint64 {
 	var excessBlobGas *uint64
@@ -464,6 +481,12 @@ func (b *Block) WithBody(body Body) *Block {
 		block.uncles[i] = CopyHeader(body.Uncles[i])
 	}
 	return block
+}
+
+// WithRejected sets the rejected transactions in a block, does not return a new block.
+func (b *Block) WithRejected(rejected []RejectedTransaction) *Block {
+	b.rejected = rejected
+	return b
 }
 
 // Hash returns the keccak256 hash of b's header.

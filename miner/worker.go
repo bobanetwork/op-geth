@@ -96,6 +96,7 @@ type generateParams struct {
 	withdrawals types.Withdrawals // List of withdrawals to include in block (shanghai field)
 	beaconRoot  *common.Hash      // The beacon root (cancun field).
 	noTxs       bool              // Flag whether an empty block without any transaction is expected
+	espresso    bool              // Flag whether Espresso is enabled
 
 	txs       types.Transactions // Deposit transactions to include at the start of the block
 	gasLimit  *uint64            // Optional gas limit override
@@ -119,12 +120,25 @@ func (miner *Miner) generateWork(params *generateParams) *newPayloadResult {
 
 	misc.EnsureCreate2Deployer(miner.chainConfig, work.header.Time, work.state)
 
+	rejected := make([]types.RejectedTransaction, 0)
 	for _, tx := range params.txs {
 		from, _ := types.Sender(work.signer, tx)
 		work.state.SetTxContext(tx.Hash(), work.tcount)
 		err = miner.commitTransaction(work, tx)
 		if err != nil {
-			return &newPayloadResult{err: fmt.Errorf("failed to force-include tx: %s type: %d sender: %s nonce: %d, err: %w", tx.Hash(), tx.Type(), from, tx.Nonce(), err)}
+			if params.espresso {
+				// op-node should make sure that the transactions can be serialized
+				bytes, err := tx.MarshalBinary()
+				if err != nil {
+					return &newPayloadResult{err: fmt.Errorf("failed to serialize transaction tx %v, err: %w", tx, err)}
+				}
+				rejected = append(rejected, types.RejectedTransaction{
+					Data: bytes,
+					Pos:  uint64(len(work.receipts)),
+				})
+			} else {
+				return &newPayloadResult{err: fmt.Errorf("failed to force-include tx: %s type: %d sender: %s nonce: %d, err: %w", tx.Hash(), tx.Type(), from, tx.Nonce(), err)}
+			}
 		}
 		work.tcount++
 	}
@@ -151,7 +165,7 @@ func (miner *Miner) generateWork(params *generateParams) *newPayloadResult {
 	}
 
 	body := types.Body{Transactions: work.txs, Withdrawals: params.withdrawals}
-	block, err := miner.engine.FinalizeAndAssemble(miner.chain, work.header, work.state, &body, work.receipts)
+	block, err := miner.engine.FinalizeAndAssemble(miner.chain, work.header, work.state, &body, work.receipts, rejected)
 	if err != nil {
 		return &newPayloadResult{err: err}
 	}

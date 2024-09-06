@@ -46,6 +46,7 @@ type BuildPayloadArgs struct {
 	Version      engine.PayloadVersion // Versioning byte for payload id calculation.
 
 	NoTxPool     bool                 // Optimism addition: option to disable tx pool contents from being included
+	Espresso     bool                 // Optimism addition: option to enable espresso mode
 	Transactions []*types.Transaction // Optimism addition: txs forced into the block via engine API
 	GasLimit     *uint64              // Optimism addition: override gas limit of the block to build
 }
@@ -268,6 +269,7 @@ func (miner *Miner) buildPayload(args *BuildPayloadArgs) (*Payload, error) {
 			withdrawals: args.Withdrawals,
 			beaconRoot:  args.BeaconRoot,
 			noTxs:       true,
+			espresso:    args.Espresso,
 			txs:         args.Transactions,
 			gasLimit:    args.GasLimit,
 		}
@@ -292,6 +294,7 @@ func (miner *Miner) buildPayload(args *BuildPayloadArgs) (*Payload, error) {
 		withdrawals: args.Withdrawals,
 		beaconRoot:  args.BeaconRoot,
 		noTxs:       false,
+		espresso:    false,
 		txs:         args.Transactions,
 		gasLimit:    args.GasLimit,
 	}
