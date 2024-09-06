@@ -152,7 +152,8 @@ func TestBuildPayload(t *testing.T) {
 	// the builder routine
 	t.Run("with-tx-pool", func(t *testing.T) { testBuildPayload(t, false, false, false) })
 	t.Run("with-tx-pool-interrupt", func(t *testing.T) { testBuildPayload(t, false, false, true) })
-	t.Run("espresso", func(t *testing.T) { testBuildPayload(t, true, true, false) })
+	// espresso test
+	t.Run("espresso-no-tx-pool", func(t *testing.T) { testBuildPayload(t, true, true, false) })
 }
 
 func testBuildPayload(t *testing.T, noTxPool, espresso, interrupt bool) {
@@ -181,9 +182,10 @@ func testBuildPayload(t *testing.T, noTxPool, espresso, interrupt bool) {
 		Espresso:     espresso,
 	}
 
+	const numInvalidEspressoTxs = 2
 	if espresso {
 		// Espresso mode forces the payload to be built
-		args.Transactions = genTxs(2, 2)
+		args.Transactions = genTxs(1, numInvalidEspressoTxs)
 	}
 
 	// payload resolution now interrupts block building, so we have to
@@ -216,7 +218,7 @@ func testBuildPayload(t *testing.T, noTxPool, espresso, interrupt bool) {
 			t.Fatalf("Unexpect transaction set: got %d, expected less than %d", len(payload.Transactions), txs)
 		}
 		if espresso {
-			if len(payload.Rejected) != 2 {
+			if len(payload.Rejected) != numInvalidEspressoTxs {
 				t.Fatal("Expected rejected transactions")
 			}
 		}
