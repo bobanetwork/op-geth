@@ -378,6 +378,7 @@ func (api *ConsensusAPI) forkchoiceUpdated(update engine.ForkchoiceStateV1, payl
 			Withdrawals:  payloadAttributes.Withdrawals,
 			BeaconRoot:   payloadAttributes.BeaconRoot,
 			NoTxPool:     payloadAttributes.NoTxPool,
+			Espresso:     payloadAttributes.Espresso,
 			Transactions: transactions,
 			GasLimit:     payloadAttributes.GasLimit,
 			Version:      payloadVersion,

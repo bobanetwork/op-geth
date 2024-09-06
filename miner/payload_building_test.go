@@ -147,14 +147,15 @@ func newTestWorker(t *testing.T, chainConfig *params.ChainConfig, engine consens
 }
 
 func TestBuildPayload(t *testing.T) {
-	t.Run("no-tx-pool", func(t *testing.T) { testBuildPayload(t, true, false) })
+	t.Run("no-tx-pool", func(t *testing.T) { testBuildPayload(t, true, false, false) })
 	// no-tx-pool case with interrupt not interesting because no-tx-pool doesn't run
 	// the builder routine
-	t.Run("with-tx-pool", func(t *testing.T) { testBuildPayload(t, false, false) })
-	t.Run("with-tx-pool-interrupt", func(t *testing.T) { testBuildPayload(t, false, true) })
+	t.Run("with-tx-pool", func(t *testing.T) { testBuildPayload(t, false, false, false) })
+	t.Run("with-tx-pool-interrupt", func(t *testing.T) { testBuildPayload(t, false, false, true) })
+	t.Run("espresso", func(t *testing.T) { testBuildPayload(t, true, true, false) })
 }
 
-func testBuildPayload(t *testing.T, noTxPool, interrupt bool) {
+func testBuildPayload(t *testing.T, noTxPool, espresso, interrupt bool) {
 	t.Parallel()
 	var (
 		db        = rawdb.NewMemoryDatabase()
@@ -177,7 +178,14 @@ func testBuildPayload(t *testing.T, noTxPool, interrupt bool) {
 		Random:       common.Hash{},
 		FeeRecipient: recipient,
 		NoTxPool:     noTxPool,
+		Espresso:     espresso,
 	}
+
+	if espresso {
+		// Espresso mode forces the payload to be built
+		args.Transactions = genTxs(2, 2)
+	}
+
 	// payload resolution now interrupts block building, so we have to
 	// wait for the payloading building process to build its first block
 	payload, err := w.buildPayload(args)
@@ -206,6 +214,11 @@ func testBuildPayload(t *testing.T, noTxPool, interrupt bool) {
 			t.Fatalf("Unexpect transaction set: got %d, expected %d", len(payload.Transactions), txs)
 		} else if interrupt && len(payload.Transactions) >= txs {
 			t.Fatalf("Unexpect transaction set: got %d, expected less than %d", len(payload.Transactions), txs)
+		}
+		if espresso {
+			if len(payload.Rejected) != 2 {
+				t.Fatal("Expected rejected transactions")
+			}
 		}
 	}
 
