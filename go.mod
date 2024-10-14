@@ -151,4 +151,4 @@ require (
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
 
-//replace github.com/ethereum-optimism/superchain-registry/superchain => ../superchain-registry/superchain
+replace github.com/ethereum-optimism/superchain-registry/superchain => github.com/bobanetwork/superchain-registry/superchain v0.0.0-20240926214052-4aa1ce20dfa5
