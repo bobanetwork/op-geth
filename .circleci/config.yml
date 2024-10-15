@@ -65,7 +65,7 @@ jobs:
       repo:
         description: Docker repo
         type: string
-        default: "bobanetwork-tools-artifacts/images"
+        default: "boba-392114/bobanetwork-tools-artifacts/images"
       push_tags:
         description: Push release push tags
         type: boolean
