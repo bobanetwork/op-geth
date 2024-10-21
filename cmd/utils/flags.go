@@ -1710,6 +1710,9 @@ func setMiner(ctx *cli.Context, cfg *miner.Config) {
 	if ctx.IsSet(RollupComputePendingBlock.Name) {
 		cfg.RollupComputePendingBlock = ctx.Bool(RollupComputePendingBlock.Name)
 	}
+
+	// This flag has a default rate limit so always set
+	cfg.RollupTransactionConditionalRateLimit = ctx.Int(RollupSequencerTxConditionalRateLimitFlag.Name)
 }
 
 func setRequiredBlocks(ctx *cli.Context, cfg *ethconfig.Config) {

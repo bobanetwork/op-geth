@@ -65,7 +65,7 @@ jobs:
       repo:
         description: Docker repo
         type: string
-        default: "oplabs-tools-artifacts/images"
+        default: "boba-392114/bobanetwork-tools-artifacts/images"
       push_tags:
         description: Push release push tags
         type: boolean
@@ -189,11 +189,11 @@ workflows:
           name: Run linter over geth
       - tidy-geth:
           name: Check geth go.mod file has been tidied
-      - docker-release:
-          name: Push to Docker
-          docker_tags: <<pipeline.git.revision>>
-          context:
-            - oplabs-gcr
+      # - docker-release:
+      #     name: Push to Docker
+      #     docker_tags: <<pipeline.git.revision>>
+      #     context:
+      #       - oplabs-gcr
   release:
     jobs:
       - hold:
