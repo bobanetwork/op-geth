@@ -33,7 +33,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/eth/tracers"
 	"github.com/ethereum/go-ethereum/params"
-	"golang.org/x/time/rate"
 )
 
 // Backend wraps all methods required for mining. Only full node is capable
@@ -87,9 +86,6 @@ type Miner struct {
 	pendingMu   sync.Mutex // Lock protects the pending block
 
 	backend Backend
-
-	// TransactionConditional safegaurds
-	conditionalLimiter *rate.Limiter
 }
 
 // New creates a new miner with provided config.
@@ -102,8 +98,6 @@ func New(eth Backend, config Config, engine consensus.Engine) *Miner {
 		txpool:      eth.TxPool(),
 		chain:       eth.BlockChain(),
 		pending:     &pending{},
-		// setup the rate limit imposed on conditional transactions when block building
-		conditionalLimiter: rate.NewLimiter(rate.Limit(config.RollupTransactionConditionalRateLimit), params.TransactionConditionalMaxCost),
 	}
 }
 
@@ -159,8 +153,8 @@ func (miner *Miner) SetGasTip(tip *big.Int) error {
 }
 
 // BuildPayload builds the payload according to the provided parameters.
-func (miner *Miner) BuildPayload(args *BuildPayloadArgs) (*Payload, error) {
-	return miner.buildPayload(args)
+func (miner *Miner) BuildPayload(args *BuildPayloadArgs, witness bool) (*Payload, error) {
+	return miner.buildPayload(args, witness)
 }
 
 // getPending retrieves the pending block based on the current head block.
@@ -189,7 +183,7 @@ func (miner *Miner) getPending() *newPayloadResult {
 		withdrawals: withdrawal,
 		beaconRoot:  nil,
 		noTxs:       false,
-	})
+	}, false) // we will never make a witness for a pending block
 	if ret.err != nil {
 		return nil
 	}
