@@ -107,10 +107,11 @@ type generateParams struct {
 	beaconRoot  *common.Hash      // The beacon root (cancun field).
 	noTxs       bool              // Flag whether an empty block without any transaction is expected
 
-	txs       types.Transactions // Deposit transactions to include at the start of the block
-	gasLimit  *uint64            // Optional gas limit override
-	interrupt *atomic.Int32      // Optional interruption signal to pass down to worker.generateWork
-	isUpdate  bool               // Optional flag indicating that this is building a discardable update
+	txs           types.Transactions // Deposit transactions to include at the start of the block
+	gasLimit      *uint64            // Optional gas limit override
+	eip1559Params []byte             // Optional EIP-1559 parameters
+	interrupt     *atomic.Int32      // Optional interruption signal to pass down to worker.generateWork
+	isUpdate      bool               // Optional flag indicating that this is building a discardable update
 }
 
 // generateWork generates a sealing block based on the given parameters.
@@ -228,7 +229,8 @@ func (miner *Miner) prepareWork(genParams *generateParams, witness bool) (*envir
 		Coinbase:   genParams.coinbase,
 	}
 	// Set the extra field.
-	if len(miner.config.ExtraData) != 0 && miner.chainConfig.Optimism == nil { // Optimism chains must not set any extra data.
+	if len(miner.config.ExtraData) != 0 && miner.chainConfig.Optimism == nil {
+		// Optimism chains have their own ExtraData handling rules
 		header.Extra = miner.config.ExtraData
 	}
 	// Set the randomness field from the beacon chain if it's available.
@@ -248,6 +250,21 @@ func (miner *Miner) prepareWork(genParams *generateParams, witness bool) (*envir
 	} else if miner.chain.Config().Optimism != nil && miner.config.GasCeil != 0 {
 		// configure the gas limit of pending blocks with the miner gas limit config when using optimism
 		header.GasLimit = miner.config.GasCeil
+	}
+	if miner.chainConfig.IsHolocene(header.Time) {
+		if err := eip1559.ValidateHolocene1559Params(genParams.eip1559Params); err != nil {
+			return nil, err
+		}
+		// If this is a holocene block and the params are 0, we must convert them to their previous
+		// constants in the header.
+		d, e := eip1559.DecodeHolocene1559Params(genParams.eip1559Params)
+		if d == 0 {
+			d = miner.chainConfig.BaseFeeChangeDenominator(header.Time)
+			e = miner.chainConfig.ElasticityMultiplier()
+		}
+		header.Extra = eip1559.EncodeHoloceneExtraData(d, e)
+	} else if genParams.eip1559Params != nil {
+		return nil, errors.New("got eip1559 params, expected none")
 	}
 	// Run the consensus preparation with the default or customized consensus engine.
 	// Note that the `header.Time` may be changed.
@@ -398,6 +415,7 @@ func (miner *Miner) commitTransactions(env *environment, plainTxs, blobTxs *tran
 	if env.gasPool == nil {
 		env.gasPool = new(core.GasPool).AddGas(gasLimit)
 	}
+	blockDABytes := new(big.Int)
 	for {
 		// Check interruption signal and abort building if it's fired.
 		if interrupt != nil {
@@ -451,6 +469,16 @@ func (miner *Miner) commitTransactions(env *environment, plainTxs, blobTxs *tran
 			txs.Pop()
 			continue
 		}
+		daBytesAfter := new(big.Int)
+		if ltx.DABytes != nil && miner.config.MaxDABlockSize != nil {
+			daBytesAfter.Add(blockDABytes, ltx.DABytes)
+			if daBytesAfter.Cmp(miner.config.MaxDABlockSize) > 0 {
+				log.Debug("adding tx would exceed block DA size limit",
+					"hash", ltx.Hash, "txda", ltx.DABytes, "blockda", blockDABytes, "dalimit", miner.config.MaxDABlockSize)
+				txs.Pop()
+				continue
+			}
+		}
 		// Transaction seems to fit, pull it up from the pool
 		tx := ltx.Resolve()
 		if tx == nil {
@@ -490,6 +518,7 @@ func (miner *Miner) commitTransactions(env *environment, plainTxs, blobTxs *tran
 
 		case errors.Is(err, nil):
 			// Everything ok, collect the logs and shift in the next transaction from the same account
+			blockDABytes = daBytesAfter
 			txs.Shift()
 
 		default:
@@ -512,7 +541,8 @@ func (miner *Miner) fillTransactions(interrupt *atomic.Int32, env *environment) 
 
 	// Retrieve the pending transactions pre-filtered by the 1559/4844 dynamic fees
 	filter := txpool.PendingFilter{
-		MinTip: uint256.MustFromBig(tip),
+		MinTip:      uint256.MustFromBig(tip),
+		MaxDATxSize: miner.config.MaxDATxSize,
 	}
 	if env.header.BaseFee != nil {
 		filter.BaseFee = uint256.MustFromBig(env.header.BaseFee)
