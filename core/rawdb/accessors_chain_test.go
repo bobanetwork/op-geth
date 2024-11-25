@@ -811,6 +811,7 @@ func TestParseLegacyReceiptRLP(t *testing.T) {
 		L1GasPrice: gasUsed,
 		L1Fee:      gasUsed,
 		FeeScalar:  "6",
+		L2BobaFee:  gasUsed,
 	}
 
 	data, err := rlp.EncodeToBytes(receipt)
