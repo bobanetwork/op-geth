@@ -247,7 +247,7 @@ var bobaSepoliaDev0Cfg = hardforkConfig{
 	EcotoneTime:              uint64(1724692141),
 	FjordTime:                uint64(1724692150),
 	GraniteTime:              uint64(1724914800),
-	HoloceneTime:             uint64(1736150400),
+	HoloceneTime:             uint64(1732435200),
 	EIP1559Elasticity:        6,
 	EIP1559Denominator:       50,
 	EIP1559DenominatorCanyon: 250,
