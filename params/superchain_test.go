@@ -280,6 +280,7 @@ var opMainnetCfg = hardforkConfig{
 	EcotoneTime:              uint64(1710374401),
 	FjordTime:                uint64(1720627201),
 	GraniteTime:              uint64(1726070401),
+	HoloceneTime:             uint64(1736445601),
 	EIP1559Elasticity:        6,
 	EIP1559Denominator:       50,
 	EIP1559DenominatorCanyon: 250,
