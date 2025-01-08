@@ -216,6 +216,7 @@ var bobaMainnetCfg = hardforkConfig{
 	EcotoneTime:              uint64(1713302880),
 	FjordTime:                uint64(1725951600),
 	GraniteTime:              uint64(1729753200),
+	HoloceneTime:             uint64(1738785600),
 	EIP1559Elasticity:        6,
 	EIP1559Denominator:       50,
 	EIP1559DenominatorCanyon: 250,
@@ -279,6 +280,7 @@ var opMainnetCfg = hardforkConfig{
 	EcotoneTime:              uint64(1710374401),
 	FjordTime:                uint64(1720627201),
 	GraniteTime:              uint64(1726070401),
+	HoloceneTime:             uint64(1736445601),
 	EIP1559Elasticity:        6,
 	EIP1559Denominator:       50,
 	EIP1559DenominatorCanyon: 250,
@@ -311,11 +313,7 @@ func TestChainConfigByOpStackChainName(t *testing.T) {
 		require.Equal(t, expectedHarhardforkCfg.EcotoneTime, *gotCfg.EcotoneTime)
 		require.Equal(t, expectedHarhardforkCfg.FjordTime, *gotCfg.FjordTime)
 		require.Equal(t, expectedHarhardforkCfg.GraniteTime, *gotCfg.GraniteTime)
-		if expectedHarhardforkCfg.HoloceneTime != 0 {
-			require.Equal(t, expectedHarhardforkCfg.HoloceneTime, *gotCfg.HoloceneTime)
-		} else {
-			require.Nil(t, gotCfg.HoloceneTime)
-		}
+		require.Equal(t, expectedHarhardforkCfg.HoloceneTime, *gotCfg.HoloceneTime)
 
 		// EIP-1559
 		require.Equal(t, expectedHarhardforkCfg.EIP1559Elasticity, gotCfg.Optimism.EIP1559Elasticity)
