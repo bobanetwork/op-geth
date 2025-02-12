@@ -224,15 +224,6 @@ workflows:
             - oplabs-gcr-release
           requires:
             - hold
-
-  merge:
-    jobs:
-      - build-and-deploy:
-          context: circleci-repo-op-geth
-          filters:
-            branches:
-              only: optimism
-
   scheduled:
     triggers:
       - schedule:
