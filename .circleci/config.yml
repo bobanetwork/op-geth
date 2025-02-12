@@ -3,7 +3,6 @@ version: 2.1
 orbs:
   gcp-cli: circleci/gcp-cli@3.0.1
   slack: circleci/slack@4.10.1
-  utils: ethereum-optimism/circleci-utils@0.0.8
 
 parameters:
   go_version:
@@ -53,43 +52,6 @@ commands:
             echo "export GOOGLE_APPLICATION_CREDENTIALS='<< parameters.gcp_cred_config_file_path >>'" | tee -a "$BASH_ENV"
 
 jobs:
-  build-and-deploy:
-    machine:
-      image: ubuntu-2004:current
-    steps:
-      - checkout
-      # Fetch more history for diffing
-      - run:
-          name: Fetch git history
-          command: |
-            git fetch --depth 1000
-
-      # Build forkdiff using Docker
-      - run:
-          name: Build forkdiff
-          command: |
-            docker run --volume $(pwd):/workspace \
-              protolambda/forkdiff:0.1.0 \
-              -repo=/workspace \
-              -fork=/workspace/fork.yaml \
-              -out=/workspace/index.html
-
-      # Prepare pages directory
-      - run:
-          name: Build pages
-          command: |
-            mkdir -p /tmp/pages
-            mv index.html /tmp/pages/index.html
-            touch /tmp/pages/.nojekyll
-            if [ "$CIRCLE_PROJECT_REPONAME" == "op-geth" ] && [ "$CIRCLE_PROJECT_USERNAME" == "ethereum-optimism" ]; then
-              echo "op-geth.optimism.io" > /tmp/pages/CNAME
-            fi
-      - utils/get-github-access-token:
-          private-key-str: GITHUB_APP_KEY
-          app-id: GITHUB_APP_ID
-          repo: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
-      - utils/github-pages-deploy:
-          src-pages-dir: /tmp/pages
   docker-release:
     environment:
       DOCKER_BUILDKIT: 1
@@ -108,7 +70,7 @@ jobs:
       repo:
         description: Docker repo
         type: string
-        default: "oplabs-tools-artifacts/images"
+        default: "boba-392114/bobanetwork-tools-artifacts/images"
       push_tags:
         description: Push release push tags
         type: boolean
@@ -145,7 +107,7 @@ jobs:
               -f Dockerfile .
       - when:
           condition:
-            equal: [true, <<parameters.push_tags>>]
+            equal: [ true, <<parameters.push_tags>> ]
           steps:
             - run:
                 name: Tag
@@ -173,6 +135,7 @@ jobs:
                       --image-path="$IMAGE_PATH"\
                       --signer-logging-level="INFO"\
                       --attestor-key-id="//cloudkms.googleapis.com/v1/projects/$ATTESTOR_PROJECT_NAME/locations/global/keyRings/$ATTESTOR_NAME-key-ring/cryptoKeys/$ATTESTOR_NAME-key/cryptoKeyVersions/1"
+
 
   build-geth:
     docker:
@@ -220,6 +183,7 @@ jobs:
             bash ./sync-superchain.sh
             git diff --exit-code
 
+
 workflows:
   main:
     jobs:
@@ -231,11 +195,11 @@ workflows:
           name: Run linter over geth
       - tidy-geth:
           name: Check geth go.mod file has been tidied
-      - docker-release:
-          name: Push to Docker
-          docker_tags: <<pipeline.git.revision>>
-          context:
-            - oplabs-gcr
+      # - docker-release:
+      #     name: Push to Docker
+      #     docker_tags: <<pipeline.git.revision>>
+      #     context:
+      #       - oplabs-gcr
       - check-sr-diff:
           name: Check superchain registry bundle diff
   release:
@@ -268,3 +232,16 @@ workflows:
           filters:
             branches:
               only: optimism
+
+  scheduled:
+    triggers:
+      - schedule:
+          # run daily
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only: [ "optimism" ]
+    jobs:
+      - check-releases:
+          name: Check for new upstream releases
+          context: slack
