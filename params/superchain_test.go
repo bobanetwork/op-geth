@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/superchain"
 	"github.com/stretchr/testify/require"
 )
 
@@ -296,7 +297,11 @@ func TestChainConfigByOpStackChainName(t *testing.T) {
 	}
 
 	for name, expectedHarhardforkCfg := range hardforkConfigsByName {
-		gotCfg, err := LoadOPStackChainConfig(name)
+		chain, err := superchain.GetChain(name)
+		require.NoError(t, err)
+		chainConf, err := chain.Config()
+		require.NoError(t, err)
+		gotCfg, err := LoadOPStackChainConfig(chainConf)
 		require.NotNil(t, gotCfg)
 		require.NoError(t, err)
 
