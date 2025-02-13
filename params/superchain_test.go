@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/superchain"
 	"github.com/stretchr/testify/require"
 )
 
@@ -124,7 +125,6 @@ func TestProtocolVersion_Compare(t *testing.T) {
 		},
 	}
 	for i, tc := range testCases {
-		tc := tc // not a parallel sub-test, but better than a flake
 		t.Run(fmt.Sprintf("case_%d", i), func(t *testing.T) {
 			a := ProtocolVersionV0{tc.A.Build, tc.A.Major, tc.A.Minor, tc.A.Patch, tc.A.Prerelease}.Encode()
 			a[0] = tc.A.VersionType
@@ -297,7 +297,11 @@ func TestChainConfigByOpStackChainName(t *testing.T) {
 	}
 
 	for name, expectedHarhardforkCfg := range hardforkConfigsByName {
-		gotCfg, err := LoadOPStackChainConfig(name)
+		chain, err := superchain.GetChain(name)
+		require.NoError(t, err)
+		chainConf, err := chain.Config()
+		require.NoError(t, err)
+		gotCfg, err := LoadOPStackChainConfig(chainConf)
 		require.NotNil(t, gotCfg)
 		require.NoError(t, err)
 
