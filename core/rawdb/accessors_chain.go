@@ -635,6 +635,7 @@ type storedReceiptRLP struct {
 	L1GasPrice *big.Int `rlp:"optional"` // OVM legacy
 	L1Fee      *big.Int `rlp:"optional"` // OVM legacy
 	FeeScalar  string   `rlp:"optional"` // OVM legacy
+	L2BobaFee  *big.Int `rlp:"optional"` // OVM legacy
 }
 
 // ReceiptLogs is a barebone version of ReceiptForStorage which only keeps
