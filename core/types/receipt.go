@@ -170,6 +170,7 @@ type LegacyOptimismStoredReceiptRLP struct {
 	L1GasPrice        *big.Int
 	L1Fee             *big.Int
 	FeeScalar         string
+	L2BobaFee         *big.Int `rlp:"optional"`
 }
 
 // LogForStorage is a wrapper around a Log that handles
