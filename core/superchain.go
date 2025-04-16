@@ -75,7 +75,7 @@ func LoadOPStackGenesis(chainID uint64) (*Genesis, error) {
 		case params.BobaBnbTestnetChainID:
 			expectedHash = common.HexToHash("0x4d26ddc947c7cea924d5ef272c1a5ef40a1dce5ca2cbbaccad59d33f2505a30d")
 		default:
-			return nil, fmt.Errorf("unknown stateless genesis definition for chain %d", chainID)
+			return nil, fmt.Errorf("unknown stateless genesis definition for chain %d, genesis hash %s", chainID, genesisBlockHash)
 		}
 	}
 	if expectedHash != genesisBlockHash {
