@@ -148,3 +148,5 @@ require (
 	golang.org/x/net v0.38.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
+
+// replace github.com/ethereum-optimism/superchain-registry/superchain => github.com/bobanetwork/superchain-registry/superchain v0.0.0-20250107213715-cb3c5cb83e2e
