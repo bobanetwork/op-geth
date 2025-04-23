@@ -96,14 +96,6 @@ func LoadOPStackChainConfig(chConfig *superchain.ChainConfig) (*ChainConfig, err
 		out.MergeNetsplitBlock = big.NewInt(511)
 		out.BedrockBlock = big.NewInt(511)
 		out.RegolithTime = &BobaSepoliaRegolithTime
-	case BobaBnbTestnetChainID:
-		out.BerlinBlock = big.NewInt(675077)
-		out.LondonBlock = big.NewInt(675077)
-		out.ArrowGlacierBlock = big.NewInt(675077)
-		out.GrayGlacierBlock = big.NewInt(675077)
-		out.MergeNetsplitBlock = big.NewInt(675077)
-		out.BedrockBlock = big.NewInt(675077)
-		out.RegolithTime = &BobaBnbTestnetRegoTime
 	}
 
 	return out, nil
