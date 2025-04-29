@@ -222,22 +222,6 @@ var bobaMainnetCfg = hardforkConfig{
 	EIP1559DenominatorCanyon: 250,
 }
 
-var bobaBnbTestnetCfg = hardforkConfig{
-	chainID:                  9728,
-	ShanghaiTime:             uint64(1718920167),
-	CancunTime:               uint64(1718920168),
-	BedrockBlock:             big.NewInt(675077),
-	RegolithTime:             uint64(1718920167),
-	CanyonTime:               uint64(1718920167),
-	EcotoneTime:              uint64(1718920168),
-	FjordTime:                uint64(1722297600),
-	GraniteTime:              uint64(1726470000),
-	HoloceneTime:             uint64(1736150400),
-	EIP1559Elasticity:        6,
-	EIP1559Denominator:       50,
-	EIP1559DenominatorCanyon: 250,
-}
-
 var bobaSepoliaDev0Cfg = hardforkConfig{
 	chainID:                  288882,
 	ShanghaiTime:             uint64(1724692140),
@@ -291,7 +275,6 @@ func TestChainConfigByOpStackChainName(t *testing.T) {
 		288882:   bobaSepoliaDev0Cfg,
 		28882:    bobaSepoliaCfg,
 		288:      bobaMainnetCfg,
-		9728:     bobaBnbTestnetCfg,
 		11155420: opSepoliaCfg,
 		10:       opMainnetCfg,
 	}
