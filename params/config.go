@@ -35,11 +35,11 @@ var (
 )
 
 const (
-	OPMainnetChainID      = 10
-	BaseMainnetChainID    = 8453
-	baseSepoliaChainID    = 84532
-	BobaMainnetChainID    = 288
-	BobaSepoliaChainID    = 28882
+	OPMainnetChainID   = 10
+	BaseMainnetChainID = 8453
+	baseSepoliaChainID = 84532
+	BobaMainnetChainID = 288
+	BobaSepoliaChainID = 28882
 )
 
 // OP Stack chain config
