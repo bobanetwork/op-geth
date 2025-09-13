@@ -56,6 +56,7 @@ func LoadOPStackChainConfig(chConfig *superchain.ChainConfig) (*ChainConfig, err
 		HoloceneTime:            hardforks.HoloceneTime,
 		IsthmusTime:             hardforks.IsthmusTime,
 		JovianTime:              hardforks.JovianTime,
+		InteropTime:             hardforks.InteropTime,
 		TerminalTotalDifficulty: common.Big0,
 		Ethash:                  nil,
 		Clique:                  nil,
@@ -81,7 +82,7 @@ func LoadOPStackChainConfig(chConfig *superchain.ChainConfig) (*ChainConfig, err
 		out.MergeNetsplitBlock = big.NewInt(105235063)
 		out.BedrockBlock = big.NewInt(105235063)
 	case BobaMainnetChainID:
-		out.BerlinBlock = big.NewInt(1149019)
+		out.BerlinBlock = big.NewInt(400000)
 		out.LondonBlock = big.NewInt(1149019)
 		out.ArrowGlacierBlock = big.NewInt(1149019)
 		out.GrayGlacierBlock = big.NewInt(1149019)
@@ -96,14 +97,6 @@ func LoadOPStackChainConfig(chConfig *superchain.ChainConfig) (*ChainConfig, err
 		out.MergeNetsplitBlock = big.NewInt(511)
 		out.BedrockBlock = big.NewInt(511)
 		out.RegolithTime = &BobaSepoliaRegolithTime
-	case BobaBnbTestnetChainID:
-		out.BerlinBlock = big.NewInt(675077)
-		out.LondonBlock = big.NewInt(675077)
-		out.ArrowGlacierBlock = big.NewInt(675077)
-		out.GrayGlacierBlock = big.NewInt(675077)
-		out.MergeNetsplitBlock = big.NewInt(675077)
-		out.BedrockBlock = big.NewInt(675077)
-		out.RegolithTime = &BobaBnbTestnetRegoTime
 	}
 
 	return out, nil

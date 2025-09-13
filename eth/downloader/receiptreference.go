@@ -5,12 +5,14 @@ import (
 	"embed"
 	"encoding/gob"
 	"fmt"
+	"math/big"
 	"path"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
 // userDepositNonces is a struct to hold the reference data for user deposits
@@ -100,20 +102,22 @@ func correctReceipts(receipts types.Receipts, transactions types.Transactions, b
 		return receipts
 	}
 
+	signer := types.LatestSignerForChainID(big.NewInt(int64(chainID)))
 	// iterate through the receipts and transactions to correct the deposit nonce
 	// user deposits should always be at the front of the block, but we will check all transactions to be sure
 	udCount := 0
 	for i := 0; i < len(receipts); i++ {
 		r := receipts[i]
-		tx := transactions[i]
-		from, err := types.Sender(types.LatestSignerForChainID(tx.ChainId()), tx)
-		if err != nil {
-			log.Warn("Receipt Correction: Failed to determine sender", "err", err)
-			continue
-		}
 		// break as soon as a non deposit is found
 		if r.Type != types.DepositTxType {
 			break
+		}
+
+		tx := transactions[i]
+		from, err := types.Sender(signer, tx)
+		if err != nil {
+			log.Warn("Receipt Correction: Failed to determine sender", "err", err)
+			continue
 		}
 		// ignore any transactions from the system address
 		if from != systemAddress {
@@ -141,4 +145,28 @@ func correctReceipts(receipts types.Receipts, transactions types.Transactions, b
 
 	log.Trace("Receipt Correction: Completed", "blockNumber", blockNumber, "userDeposits", udCount, "receipts", len(receipts), "transactions", len(transactions))
 	return receipts
+}
+
+// correctReceiptsRLP corrects the deposit nonce in the receipts using the reference data
+// This function works with RLP encoded receipts, decoding them to Receipt structs,
+// applying corrections, and re-encoding them back to RLP.
+func correctReceiptsRLP(receiptsRLP rlp.RawValue, transactions types.Transactions, blockNumber uint64, chainID uint64) rlp.RawValue {
+	// Decode RLP receipts to Receipt structs
+	var receipts types.Receipts
+	if err := rlp.DecodeBytes(receiptsRLP, &receipts); err != nil {
+		log.Warn("Receipt Correction: Failed to decode RLP receipts", "err", err)
+		return receiptsRLP
+	}
+
+	// Apply corrections using existing correctReceipts function
+	correctedReceipts := correctReceipts(receipts, transactions, blockNumber, chainID)
+
+	// Re-encode to RLP
+	encoded, err := rlp.EncodeToBytes(correctedReceipts)
+	if err != nil {
+		log.Warn("Receipt Correction: Failed to encode corrected receipts to RLP", "err", err)
+		return receiptsRLP
+	}
+
+	return encoded
 }
