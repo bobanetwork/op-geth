@@ -222,22 +222,6 @@ var bobaMainnetCfg = hardforkConfig{
 	EIP1559DenominatorCanyon: 250,
 }
 
-var bobaSepoliaDev0Cfg = hardforkConfig{
-	chainID:                  288882,
-	ShanghaiTime:             uint64(1724692140),
-	CancunTime:               uint64(1724692141),
-	BedrockBlock:             big.NewInt(0),
-	RegolithTime:             uint64(0),
-	CanyonTime:               uint64(1724692140),
-	EcotoneTime:              uint64(1724692141),
-	FjordTime:                uint64(1724692150),
-	GraniteTime:              uint64(1724914800),
-	HoloceneTime:             uint64(1732435200),
-	EIP1559Elasticity:        6,
-	EIP1559Denominator:       50,
-	EIP1559DenominatorCanyon: 250,
-}
-
 var opSepoliaCfg = hardforkConfig{
 	chainID:                  11155420,
 	ShanghaiTime:             uint64(1699981200),
