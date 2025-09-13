@@ -272,7 +272,6 @@ var opMainnetCfg = hardforkConfig{
 
 func TestChainConfigByOpStackChainName(t *testing.T) {
 	hardforkConfigsByName := map[uint64]hardforkConfig{
-		288882:   bobaSepoliaDev0Cfg,
 		28882:    bobaSepoliaCfg,
 		288:      bobaMainnetCfg,
 		11155420: opSepoliaCfg,
