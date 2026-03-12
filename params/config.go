@@ -38,6 +38,18 @@ const (
 	OPMainnetChainID   = 10
 	BaseMainnetChainID = 8453
 	baseSepoliaChainID = 84532
+	BobaMainnetChainID = 288
+	BobaSepoliaChainID = 28882
+)
+
+// OP Stack chain config
+var (
+	// March 17, 2023 @ 7:00:00 pm UTC
+	OptimismGoerliRegolithTime = uint64(1679079600)
+	// Apr Apr 16 2024 21:27:59 UTC 2024
+	BobaMainnetRegolithTime = uint64(1713302879)
+	// January 18, 2024 @ 5:59:48 pm UTC
+	BobaSepoliaRegolithTime = uint64(1705600788)
 )
 
 func newUint64(val uint64) *uint64 { return &val }

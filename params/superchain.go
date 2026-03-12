@@ -80,6 +80,22 @@ func LoadOPStackChainConfig(chConfig *superchain.ChainConfig) (*ChainConfig, err
 		out.GrayGlacierBlock = big.NewInt(105235063)
 		out.MergeNetsplitBlock = big.NewInt(105235063)
 		out.BedrockBlock = big.NewInt(105235063)
+	case BobaMainnetChainID:
+		out.BerlinBlock = big.NewInt(400000)
+		out.LondonBlock = big.NewInt(1149019)
+		out.ArrowGlacierBlock = big.NewInt(1149019)
+		out.GrayGlacierBlock = big.NewInt(1149019)
+		out.MergeNetsplitBlock = big.NewInt(1149019)
+		out.BedrockBlock = big.NewInt(1149019)
+		out.RegolithTime = &BobaMainnetRegolithTime
+	case BobaSepoliaChainID:
+		out.BerlinBlock = big.NewInt(511)
+		out.LondonBlock = big.NewInt(511)
+		out.ArrowGlacierBlock = big.NewInt(511)
+		out.GrayGlacierBlock = big.NewInt(511)
+		out.MergeNetsplitBlock = big.NewInt(511)
+		out.BedrockBlock = big.NewInt(511)
+		out.RegolithTime = &BobaSepoliaRegolithTime
 	}
 
 	return out, nil
